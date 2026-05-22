@@ -3,28 +3,21 @@ const API_BASE_URL = "https://disperser-removable-conical.ngrok-free.dev";
 
 let currentImageURL = null;
 
-// Dynamic real-time slider value synchronizer matrix
+// Dynamic real-time slider synchronizer
 const sliders = ['style-scale', 'strength', 'steps'];
 sliders.forEach(id => {
     const el = document.getElementById(id);
-    if (el) {
-        el.addEventListener('input', () => {
-            document.getElementById(`${id}-val`).innerText = el.value;
-        });
-    }
+    if (el) el.addEventListener('input', () => { document.getElementById(`${id}-val`).innerText = el.value; });
 });
 
-// Cache reference hooks to DOM nodes
 const outImg = document.getElementById('output-image');
 const compareImg = document.getElementById('comparison-image');
 const downloadBtn = document.getElementById('download-btn');
 const loader = document.getElementById('loader');
 const placeholder = document.getElementById('placeholder-text');
 const compareLabels = document.getElementById('comparison-labels');
+const historyGrid = document.getElementById('history-grid');
 
-/**
- * Handles DOM layout mutation toggles during backend processing runs
- */
 function setProcessingState(activeButton, loadingText) {
     activeButton.disabled = true;
     activeButton.innerText = loadingText;
@@ -36,12 +29,53 @@ function setProcessingState(activeButton, loadingText) {
     loader.style.display = "block";
 }
 
+/**
+ * FEATURE 1 ENGINE: Pushes generated image blobs safely into our visual history matrix wall
+ */
+function addToHistoryLog(imageBlob, metadataText) {
+    const objectURL = URL.createObjectURL(imageBlob);
+    
+    const card = document.createElement('div');
+    card.className = 'gallery-card';
+    
+    const img = document.createElement('img');
+    img.src = objectURL;
+    
+    const label = document.createElement('span');
+    label.innerText = metadataText;
+    
+    card.appendChild(img);
+    card.appendChild(label);
+    
+    // Clicking history element restores preview instantly
+    card.addEventListener('click', () => {
+        compareImg.style.display = "none";
+        compareLabels.style.display = "none";
+        placeholder.style.display = "none";
+        
+        if (metadataText.includes("COMPARE")) {
+            compareImg.src = objectURL;
+            compareImg.style.display = "block";
+            compareLabels.style.display = "flex";
+        } else {
+            outImg.src = objectURL;
+            outImg.style.display = "block";
+        }
+        
+        if(currentImageURL && !currentImageURL.startsWith('blob:http')) {
+            // Keep track of current main download reference safely
+        }
+        downloadBtn.style.display = "flex";
+    });
+    
+    historyGrid.insertBefore(card, historyGrid.firstChild);
+}
+
 // --- 1. SINGLE IMAGE GENERATION EXECUTION INTERFACE ---
 document.getElementById('submit-btn').addEventListener('click', async () => {
     const contentFile = document.getElementById('content-input').files[0];
     const styleFile = document.getElementById('style-input').files[0];
-    const selectedModel = document.getElementById('model-choice').value;
-
+    
     if (!contentFile || !styleFile) {
         alert("Missing dependencies: Select both content and design references.");
         return;
@@ -53,16 +87,18 @@ document.getElementById('submit-btn').addEventListener('click', async () => {
     const formData = new FormData();
     formData.append("content_file", contentFile);
     formData.append("style_file", styleFile);
-    formData.append("model_choice", selectedModel); // 👈 SENDS THE SELECTED MODEL TO YOUR BACKEND
+    formData.append("model_choice", document.getElementById('model-choice').value);
+    
+    // INTEGRATION OF FEATURES 3 & 4 ATTRIBUTES INTO FORMDATA PAYLOAD
+    formData.append("structure_lock", document.getElementById('structure-lock').value);
+    formData.append("hd_upscale", document.getElementById('hd-upscale').checked ? "true" : "false");
+    
     formData.append("style_scale", document.getElementById('style-scale').value);
     formData.append("strength", document.getElementById('strength').value);
     formData.append("steps", document.getElementById('steps').value);
 
     try {
-        const response = await fetch(`${API_BASE_URL}/stylize`, { 
-            method: "POST", 
-            body: formData 
-        });
+        const response = await fetch(`${API_BASE_URL}/stylize`, { method: "POST", body: formData });
         if (!response.ok) throw new Error("Server communication fault.");
 
         const imageBlob = await response.blob();
@@ -72,9 +108,14 @@ document.getElementById('submit-btn').addEventListener('click', async () => {
         outImg.src = currentImageURL;
         outImg.style.display = "block";
         downloadBtn.style.display = "flex";
+        
+        // Push generated element to live session gallery history log
+        const labelName = `${document.getElementById('model-choice').value} (${document.getElementById('structure-lock').value})`;
+        addToHistoryLog(imageBlob, labelName);
+        
     } catch (error) {
         console.error(error);
-        alert("Runtime crash on AI Node server. Confirm your Ngrok address link is active.");
+        alert("Runtime crash on AI Node server. Confirm your Ngrok link configuration.");
         placeholder.style.display = "block";
     } finally {
         btn.disabled = false;
@@ -99,16 +140,17 @@ document.getElementById('compare-btn').addEventListener('click', async () => {
     const formData = new FormData();
     formData.append("content_file", contentFile);
     formData.append("style_file", styleFile);
-    // Note: No model choice sent here, because comparison runs both models automatically
+    
+    // COMPARISON STAGE INHERITS THE STRUCTURAL EXTRACTION & RESOLUTION SETTINGS AS WELL
+    formData.append("structure_lock", document.getElementById('structure-lock').value);
+    formData.append("hd_upscale", document.getElementById('hd-upscale').checked ? "true" : "false");
+    
     formData.append("style_scale", document.getElementById('style-scale').value);
     formData.append("strength", document.getElementById('strength').value);
     formData.append("steps", document.getElementById('steps').value);
 
     try {
-        const response = await fetch(`${API_BASE_URL}/compare`, { 
-            method: "POST", 
-            body: formData 
-        });
+        const response = await fetch(`${API_BASE_URL}/compare`, { method: "POST", body: formData });
         if (!response.ok) throw new Error("Comparison engine error.");
 
         const imageBlob = await response.blob();
@@ -119,6 +161,9 @@ document.getElementById('compare-btn').addEventListener('click', async () => {
         compareImg.style.display = "block";
         compareLabels.style.display = "flex";
         downloadBtn.style.display = "flex";
+        
+        addToHistoryLog(imageBlob, "⚔️ COMPARE MATRIX");
+        
     } catch (error) {
         console.error(error);
         alert("Analysis matrix execution failure.");

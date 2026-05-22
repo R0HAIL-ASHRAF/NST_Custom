@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Art Studio: Workbench</title>
-    <!-- Link to your external stylesheet -->
+    <title>AI Art Studio: Pro Edition</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div class="container">
-        <h1>🎨 AI Art Studio: Workbench</h1>
+        <h1>🎨 AI Art Studio: Pro Edition</h1>
 
+        <!-- LEFT COLUMN: CONTROLS -->
         <div class="panel">
             <h3>🎛️ Engine Configurations</h3>
 
@@ -25,12 +25,21 @@
                 <input type="file" id="style-input" accept="image/*">
             </div>
 
-            <!-- MODEL SELECTION DROPDOWN MATRIX -->
             <div class="control-group">
-                <label>3. Target Model (For Single Generation)</label>
+                <label>3. Target Model (Single Mode)</label>
                 <select id="model-choice">
                     <option value="sd_15">Stable Diffusion v1.5 (Standard)</option>
                     <option value="dreamshaper">DreamShaper v8 (Artistic)</option>
+                </select>
+            </div>
+
+            <!-- FEATURE 4: STRUCTURAL CONDITIONING LOCKS -->
+            <div class="control-group">
+                <label>4. Structural Lock Filter</label>
+                <select id="structure-lock">
+                    <option value="none">None (Free Morphing)</option>
+                    <option value="canny">Canny Edge (Strict Contours)</option>
+                    <option value="depth">Depth Map (Spatial 3D Geometry)</option>
                 </select>
             </div>
 
@@ -58,10 +67,17 @@
                 <input type="range" id="steps" min="10" max="50" step="5" value="30">
             </div>
 
+            <!-- FEATURE 3: HI-RES UPSCALER PIPELINE TOGGLE -->
+            <div class="control-group switch-group">
+                <label for="hd-upscale" class="switch-label">✨ Super-Resolution HD Upscale</label>
+                <input type="checkbox" id="hd-upscale" class="ios-switch">
+            </div>
+
             <button id="submit-btn">🚀 Generate Masterpiece</button>
             <button id="compare-btn">⚔️ Compare Two AI Models</button>
         </div>
 
+        <!-- RIGHT COLUMN: MASTER PREVIEW VIEWPORT -->
         <div class="panel" id="result-viewport">
             <div class="loader" id="loader"></div>
 
@@ -69,24 +85,27 @@
                 System idle. Awaiting configuration upload to materialize artwork assets.
             </p>
 
-            <!-- SINGLE IMAGE OUTPUT -->
             <img id="output-image" alt="Stylized Output">
 
-            <!-- COMPARISON LABELS -->
             <div id="comparison-labels">
                 <span>Model 1: SD 1.5</span>
                 <span>Model 2: DreamShaper</span>
             </div>
 
-            <!-- COMPARISON OUTPUT -->
             <img id="comparison-image" alt="Comparison Output">
 
-            <!-- DOWNLOAD TRIGGER -->
             <button id="download-btn" style="display: none;">📥 Download Output PNG</button>
+        </div>
+
+        <!-- FEATURE 1: CORE VISUAL SESSION HISTORY GRID -->
+        <div class="panel full-width-gallery">
+            <h3>📂 Active Session Matrix Gallery</h3>
+            <div id="history-grid" class="history-grid">
+                <!-- JavaScript appends dynamic thumbnails here in runtime -->
+            </div>
         </div>
     </div>
 
-    <!-- Link to your external script engine logic -->
     <script src="app.js"></script>
 </body>
 </html>

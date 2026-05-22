@@ -40,6 +40,7 @@ function setProcessingState(activeButton, loadingText) {
 document.getElementById('submit-btn').addEventListener('click', async () => {
     const contentFile = document.getElementById('content-input').files[0];
     const styleFile = document.getElementById('style-input').files[0];
+    const selectedModel = document.getElementById('model-choice').value;
 
     if (!contentFile || !styleFile) {
         alert("Missing dependencies: Select both content and design references.");
@@ -52,6 +53,7 @@ document.getElementById('submit-btn').addEventListener('click', async () => {
     const formData = new FormData();
     formData.append("content_file", contentFile);
     formData.append("style_file", styleFile);
+    formData.append("model_choice", selectedModel); // 👈 SENDS THE SELECTED MODEL TO YOUR BACKEND
     formData.append("style_scale", document.getElementById('style-scale').value);
     formData.append("strength", document.getElementById('strength').value);
     formData.append("steps", document.getElementById('steps').value);
@@ -97,6 +99,7 @@ document.getElementById('compare-btn').addEventListener('click', async () => {
     const formData = new FormData();
     formData.append("content_file", contentFile);
     formData.append("style_file", styleFile);
+    // Note: No model choice sent here, because comparison runs both models automatically
     formData.append("style_scale", document.getElementById('style-scale').value);
     formData.append("strength", document.getElementById('strength').value);
     formData.append("steps", document.getElementById('steps').value);
